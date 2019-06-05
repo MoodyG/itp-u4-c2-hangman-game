@@ -59,7 +59,7 @@ def _uncover_word(answer_word, masked_word, character):
     return new_word
 
 def is_game_won(game):
-    return game['answer_word'].lower == game['masked_word'].lower
+    return game['answer_word'].lower() == game['masked_word'].lower()
 
 def is_game_lost(game):
     return game['remaining_misses'] <= 0
@@ -69,7 +69,11 @@ def is_game_over(game):
 
 #don't know how to write this function
 def guess_letter(game, letter):
+    if is_game_over(game): 
+        raise GameFinishedException('the game is already done')
+    
     letter = letter.lower()
+    
     if letter in game['previous_guesses']:
         raise InvalidGuessedLetterException('you already guessed that letter')
     previous_masked = game['masked_word']
@@ -81,14 +85,29 @@ def guess_letter(game, letter):
 
     game['previous_guesses'].append(letter)
     
-    if is_game_over(game):
-        raise GameLostException('the game is already done')  
+      
     if is_game_won(game):
         raise GameWonException('you have won')
     if is_game_lost(game):
         raise GameLostException('you lost, hahaha')
-
+    #game won first try
+    '''
+    if is_game_won(game) and game['previous_guesses'] == 0:
+        raise GameWonException('you won on the first try')
+    #game won several moves some misses    
+    if is_game_won(game) and letter in game['previous_guesses']:
+        raise GameWonException('you won, try again to get it with less misses')
+    #game won several moves no misses
+    if is_game_won(game) and letter not in game['previous_guesses']:
+        raise GameWonException('you won, no misses')
+    #game already won raises game finished
+    if is_game_won(game):
+        raise GameFinishedException('game already won')
+    #game already lost raises game finished
+    if is_game_lost(game):
+        raise GameFinishedException('game already lost')
     return new_masked
+    '''
 
 def start_new_game(list_of_words=None, number_of_guesses=5):
     if list_of_words is None:
@@ -102,5 +121,6 @@ def start_new_game(list_of_words=None, number_of_guesses=5):
         'previous_guesses': [],
         'remaining_misses': number_of_guesses,
     }
+    
 
     return game
